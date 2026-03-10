@@ -1914,6 +1914,9 @@
                     closeModal('modalCreateTask');
                     await loadData();
                     showToast('✅ สร้างงานใหม่สำเร็จ');
+                } else {
+                    const errorData = await res.json();
+                    alert(errorData.error || 'เกิดข้อผิดพลาดในการสร้างงาน');
                 }
             } catch (e) { console.error(e); }
         }

@@ -209,7 +209,7 @@ app.get('/api/tasks', async (req, res) => {
         const query = `
             SELECT t.*, u.first_name || ' ' || u.last_name as "assignToName" 
             FROM tasks t
-            LEFT JOIN users u ON CAST(t.assign_to AS INTEGER) = u.id
+            LEFT JOIN users u ON CAST(NULLIF(t.assign_to, '') AS INTEGER) = u.id
             ORDER BY t.created_at DESC
         `;
         const result = await pool.query(query);
@@ -234,7 +234,8 @@ app.post('/api/tasks', async (req, res) => {
         const newIdNumber = parseInt(countRes.rows[0].count, 10) + 1;
         const newId = 'TK-' + String(newIdNumber).padStart(3, '0');
 
-        const { name, assignTo, assignDate, dueDate, status, description } = req.body;
+        let { name, assignTo, assignDate, dueDate, status, description } = req.body;
+        if (assignTo === '') assignTo = null;
 
         await pool.query(
             `INSERT INTO tasks (id, name, assign_to, assign_date, due_date, status, description) 
