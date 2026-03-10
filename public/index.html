@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — ระบบจัดการงาน</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface2: #1a2235;
+            --surface3: #1f2d45;
+            --border: #2a3a52;
+            --accent: #3b82f6;
+            --accent2: #06b6d4;
+            --accent3: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --mono: 'IBM Plex Mono', monospace;
+            --sans: 'Sarabun', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── BG Grid ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, .04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, .04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ══════════════ AUTH SCREEN ══════════════ */
+        #authScreen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: var(--bg);
+        }
+
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 420px;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 0 60px rgba(59, 130, 246, .1);
+            animation: slideUp .4s ease;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .auth-logo .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .auth-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-logo span {
+            color: var(--accent);
+        }
+
+        .auth-logo p {
+            color: var(--text2);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 28px;
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text2);
+            font-family: var(--sans);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .auth-tab.active {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text2);
+            margin-bottom: 6px;
+            font-weight: 500;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 14px;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #2563eb);
+            color: #fff;
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            margin-top: 4px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, .4);
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .contact-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .contact-info p {
+            font-size: 12px;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        .contact-item .ci-icon {
+            color: var(--accent);
+        }
+
+        /* ══════════════ APP LAYOUT ══════════════ */
+        #appScreen {
+            display: none;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 220px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-logo h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .sidebar-logo h2 span {
+            color: var(--accent);
+        }
+
+        .sidebar-logo p {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        .nav-section {
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text2);
+            transition: all .15s;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, .15);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-item .ni-icon {
+            font-size: 16px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--text3);
+        }
+
+        .user-logout {
+            margin-left: auto;
+            cursor: pointer;
+            color: var(--text3);
+            font-size: 16px;
+            transition: color .2s;
+        }
+
+        .user-logout:hover {
+            color: var(--danger);
+        }
+
+        /* ── Main Content ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--surface);
+        }
+
+        .topbar h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .topbar .page-sub {
+            font-size: 13px;
+            color: var(--text3);
+            margin-top: 1px;
+        }
+
+        .topbar-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+        }
+
+        /* ── Stats ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .stat-card.blue::after {
+            background: var(--accent);
+        }
+
+        .stat-card.cyan::after {
+            background: var(--accent2);
+        }
+
+        .stat-card.green::after {
+            background: var(--success);
+        }
+
+        .stat-card.amber::after {
+            background: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--mono);
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        /* ── Table ── */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 12px;
+            margin-left: auto;
+        }
+
+        .search-box input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 13px;
+            width: 180px;
+        }
+
+        .search-box span {
+            color: var(--text3);
+        }
+
+        .filter-select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 12px;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 11px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text3);
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(42, 58, 82, .5);
+            transition: background .15s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: var(--surface2);
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 13px 16px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .task-id {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .task-name {
+            font-weight: 600;
+        }
+
+        .task-name small {
+            display: block;
+            color: var(--text3);
+            font-weight: 400;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-todo {
+            background: rgba(100, 116, 139, .2);
+            color: #94a3b8;
+        }
+
+        .badge-inprogress {
+            background: rgba(59, 130, 246, .15);
+            color: #60a5fa;
+        }
+
+        .badge-review {
+            background: rgba(139, 92, 246, .15);
+            color: #a78bfa;
+        }
+
+        .badge-done {
+            background: rgba(16, 185, 129, .15);
+            color: #34d399;
+        }
+
+        .badge-overdue {
+            background: rgba(239, 68, 68, .15);
+            color: #f87171;
+        }
+
+        .assignee {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .due-date {
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .due-overdue {
+            color: var(--danger);
+        }
+
+        .due-soon {
+            color: var(--warning);
+        }
+
+        .due-ok {
+            color: var(--text2);
+        }
+
+        .update-cell {
+            font-size: 12px;
+        }
+
+        .update-date {
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        .update-detail {
+            color: var(--text2);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: none;
+            color: var(--text2);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all .15s;
+            font-family: var(--sans);
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp .3s ease;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: var(--surface2);
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+        }
+
+        .modal-close:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            position: sticky;
+            bottom: 0;
+            background: var(--surface);
+        }
+
+        /* ── Task Detail Panel ── */
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h4 {
+            font-size: 12px;
+            color: var(--text3);
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-section h4::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-item label {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .detail-item .val {
+            font-size: 14px;
+        }
+
+        .update-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .update-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            position: relative;
+        }
+
+        .update-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 12px;
+            bottom: 12px;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .update-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .update-item-date {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text3);
+        }
+
+        .update-item-by {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .update-item-detail {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .update-id {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 6px;
+        }
+
+        .add-update-form {
+            background: rgba(59, 130, 246, .05);
+            border: 1px solid rgba(59, 130, 246, .2);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .add-update-form h5 {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* ── Register extra fields ── */
+        .contact-section {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .contact-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--accent2);
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text3);
+        }
+
+        .empty-state .es-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: .3;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--success);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: var(--text);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
+            z-index: 999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all .3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast .t-icon {
+            color: var(--success);
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text3);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════════ AUTH SCREEN ══════════════ -->
+    <div id="authScreen">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="logo-icon">⚡</div>
+                <h1>Task<span>Flow</span></h1>
+                <p>ระบบจัดการงานและติดตามความคืบหน้า</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+                <button class="auth-tab" onclick="switchTab('register')">สมัครสมาชิก</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>อีเมล</label>
+                    <input type="email" id="loginEmail" placeholder="example@company.com" value="admin@taskflow.com">
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" value="password">
+                </div>
+                <button class="btn btn-primary" onclick="doLogin()">🔐 เข้าสู่ระบบ</button>
+                <div class="contact-info" style="margin-top:16px;">
+                    <p>📞 ติดต่อผู้ดูแลระบบ</p>
+                    <div class="contact-item"><span class="ci-icon">📧</span> admin@taskflow.com</div>
+                    <div class="contact-item"><span class="ci-icon">📱</span> 02-xxx-xxxx</div>
+                    <div class="contact-item"><span class="ci-icon">💬</span> Line: @taskflow</div>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" style="display:none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ชื่อ</label>
+                        <input type="text" placeholder="ชื่อจริง">
+                    </div>
+                    <div class="form-group">
+                        <label>นามสกุล</label>
+                        <input type="text" placeholder="นามสกุล">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>อีเมล</label>
+                    <input type="email" placeholder="example@company.com">
+                </div>
+                <div class="form-group">
+                    <label>แผนก / ตำแหน่ง</label>
+                    <input type="text" placeholder="เช่น IT / นักพัฒนา">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" placeholder="อย่างน้อย 8 ตัว">
+                    </div>
+                    <div class="form-group">
+                        <label>ยืนยันรหัสผ่าน</label>
+                        <input type="password" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="contact-section">
+                    <h4>📞 ช่องทางติดต่อ</h4>
+                    <div class="form-group">
+                        <label>เบอร์โทรศัพท์</label>
+                        <input type="tel" placeholder="08X-XXX-XXXX">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Line ID</label>
+                            <input type="text" placeholder="Line ID ของคุณ">
+                        </div>
+                        <div class="form-group">
+                            <label>Teams / Slack</label>
+                            <input type="text" placeholder="ชื่อบัญชี">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ช่องทางติดต่อที่ต้องการ</label>
+                        <select>
+                            <option>อีเมล</option>
+                            <option>Line</option>
+                            <option>โทรศัพท์</option>
+                            <option>Teams</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top:16px;" onclick="doRegister()">✅ สมัครสมาชิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ APP SCREEN ══════════════ -->
+    <div id="appScreen">
+        <div class="app-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>Task<span>Flow</span></h2>
+                    <p>v1.0.0 • 2025</p>
+                </div>
+                <nav class="nav-section">
+                    <div class="nav-label">เมนูหลัก</div>
+                    <div class="nav-item active" onclick="showPage('dashboard')">
+                        <span class="ni-icon">📊</span> ภาพรวม
+                    </div>
+                    <div class="nav-item" onclick="showPage('tasks')">
+                        <span class="ni-icon">📋</span> รายการงาน
+                        <span class="nav-badge" id="pendingBadge">3</span>
+                    </div>
+                    <div class="nav-item" onclick="showPage('mytasks')">
+                        <span class="ni-icon">👤</span> งานของฉัน
+                    </div>
+                </nav>
+                <nav class="nav-section">
+                    <div class="nav-label">จัดการ</div>
+                    <div class="nav-item" id="menuUsers" onclick="showPage('users')">
+                        <span class="ni-icon">👥</span> ผู้ใช้งาน
+                    </div>
+                    <div class="nav-item" onclick="openCreateTask()">
+                        <span class="ni-icon">➕</span> สร้างงานใหม่
+                    </div>
+                </nav>
+                <div class="sidebar-user">
+                    <div class="user-card" onclick="openUserProfile()" style="cursor:pointer;">
+                        <div class="user-avatar">A</div>
+                        <div>
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">ผู้ดูแลระบบ</div>
+                        </div>
+                        <div class="user-logout" onclick="event.stopPropagation();doLogout()" title="ออกจากระบบ">⏻</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main -->
+            <main class="main">
+                <div class="topbar">
+                    <div>
+                        <h1 id="pageTitle">ภาพรวมระบบ</h1>
+                        <div class="page-sub" id="pageSubtitle">สรุปสถานะงานทั้งหมด</div>
+                    </div>
+                    <div class="topbar-actions">
+                        <button class="btn btn-primary btn-sm" onclick="openCreateTask()">+ สร้างงานใหม่</button>
+                    </div>
+                </div>
+
+                <div class="content">
+
+                    <!-- ── Dashboard Page ── -->
+                    <div id="pageDashboard" class="page active">
+                        <div class="stats-grid">
+                            <div class="stat-card blue">
+                                <div class="stat-label">งานทั้งหมด</div>
+                                <div class="stat-value" style="color:var(--accent)">8</div>
+                                <div class="stat-sub">↑ 2 งานใหม่สัปดาห์นี้</div>
+                            </div>
+                            <div class="stat-card cyan">
+                                <div class="stat-label">กำลังดำเนินการ</div>
+                                <div class="stat-value" style="color:var(--accent2)">3</div>
+                                <div class="stat-sub">In Progress</div>
+                            </div>
+                            <div class="stat-card green">
+                                <div class="stat-label">เสร็จสิ้น</div>
+                                <div class="stat-value" style="color:var(--success)">4</div>
+                                <div class="stat-sub">50% ของงานทั้งหมด</div>
+                            </div>
+                            <div class="stat-card amber">
+                                <div class="stat-label">เกินกำหนด</div>
+                                <div class="stat-value" style="color:var(--warning)">1</div>
+                                <div class="stat-sub">ต้องการความสนใจ</div>
+                            </div>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>งานล่าสุด</h3>
+                            </div>
+                            <div id="dashTaskTable"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── Tasks Page ── -->
+                    <div id="pageTasks" class="page">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>รายการงานทั้งหมด</h3>
+                                <select class="filter-select" onchange="filterTasks(this.value)">
+                                    <option value="">ทุกสถานะ</option>
+                                    <option value="todo">To Do</option>
+                                    <option value="inprogress">In Progress</option>
+                                    <option value="review">Review</option>
+                                    <option value="done">Done</option>
+                                    <option value="overdue">Overdue</option>
+                                </select>
+                                <div class="search-box">
+                                    <span>🔍</span>
+                                    <input type="text" placeholder="ค้นหางาน..." oninput="searchTasks(this.value)">
+                                </div>
+                            </div>
+                            <div id="mainTaskTable"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── My Tasks Page ── -->
+                    <div id="pageMyTasks" class="page">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>งานที่ได้รับมอบหมาย</h3>
+                            </div>
+                            <div id="myTaskTable"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── Users Page ── -->
+                    <div id="pageUsers" class="page">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>รายชื่อผู้ใช้งาน</h3>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ชื่อ-นามสกุล</th>
+                                        <th>อีเมล</th>
+                                        <th>แผนก</th>
+                                        <th>ช่องทางติดต่อ</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="assignee">
+                                                <div class="mini-avatar"
+                                                    style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">สม</div>
+                                                สมชาย ใจดี
+                                            </div>
+                                        </td>
+                                        <td class="task-id">somchai@co.th</td>
+                                        <td>IT</td>
+                                        <td>📱 086-xxx-xxxx</td>
+                                        <td><span class="badge badge-done">Active</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="assignee">
+                                                <div class="mini-avatar"
+                                                    style="background:linear-gradient(135deg,#10b981,#06b6d4)">สา</div>
+                                                สาวิตรี มั่นคง
+                                            </div>
+                                        </td>
+                                        <td class="task-id">sawitree@co.th</td>
+                                        <td>HR</td>
+                                        <td>💬 Line: sawitree</td>
+                                        <td><span class="badge badge-done">Active</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="assignee">
+                                                <div class="mini-avatar"
+                                                    style="background:linear-gradient(135deg,#f59e0b,#ef4444)">วี</div>
+                                                วีระ สุขใจ
+                                            </div>
+                                        </td>
+                                        <td class="task-id">weera@co.th</td>
+                                        <td>Finance</td>
+                                        <td>📧 weera@co.th</td>
+                                        <td><span class="badge badge-done">Active</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ══════════════ MODAL: Task Detail ══════════════ -->
+    <div class="modal-overlay" id="modalTaskDetail">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:2px;"
+                        id="detailTaskId"></div>
+                    <h3 id="detailTaskName"></h3>
+                </div>
+                <span id="detailStatus"></span>
+                <button class="modal-close" onclick="closeModal('modalTaskDetail')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h4>รายละเอียดงาน</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><label>มอบหมายให้</label>
+                            <div class="val" id="detailAssignTo"></div>
+                        </div>
+                        <div class="detail-item"><label>วันที่ Assign</label>
+                            <div class="val" id="detailAssignDate"></div>
+                        </div>
+                        <div class="detail-item"><label>Due Date</label>
+                            <div class="val" id="detailDueDate"></div>
+                        </div>
+                        <div class="detail-item"><label>Last Update</label>
+                            <div class="val" id="detailLastUpdate"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h4>ประวัติการอัปเดต</h4>
+                    <div class="update-list" id="updateList"></div>
+                    <div class="add-update-form" id="addUpdateForm">
+                        <h5>➕ เพิ่มการอัปเดต</h5>
+                        <div class="form-group">
+                            <label>วันที่อัปเดต</label>
+                            <input type="datetime-local" id="newUpdateDate">
+                        </div>
+                        <div class="form-group">
+                            <label>รายละเอียด</label>
+                            <textarea id="newUpdateDetail" placeholder="อธิบายความคืบหน้า หรือปัญหาที่พบ..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>สถานะใหม่</label>
+                            <select id="newUpdateStatus">
+                                <option value="">ไม่เปลี่ยน</option>
+                                <option value="todo">To Do</option>
+                                <option value="inprogress">In Progress</option>
+                                <option value="review">Review</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="submitUpdate()"
+                            style="width:auto;padding:8px 20px;">💾 บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ MODAL: Create Task ══════════════ -->
+    <div class="modal-overlay" id="modalCreateTask">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>➕ สร้างงานใหม่</h3>
+                <button class="modal-close" onclick="closeModal('modalCreateTask')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ชื่องาน</label>
+                    <input type="text" id="newTaskName" placeholder="ระบุชื่องาน...">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>มอบหมายให้</label>
+                        <select id="newTaskAssign">
+                            <option>สมชาย ใจดี</option>
+                            <option>สาวิตรี มั่นคง</option>
+                            <option>วีระ สุขใจ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>สถานะเริ่มต้น</label>
+                        <select id="newTaskStatus">
+                            <option value="todo">To Do</option>
+                            <option value="inprogress">In Progress</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>วันที่ Assign</label>
+                        <input type="date" id="newTaskAssignDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="newTaskDueDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>รายละเอียดเบื้องต้น</label>
+                    <textarea id="newTaskDesc" placeholder="อธิบายงานโดยย่อ..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalCreateTask')">ยกเลิก</button>
+                <button class="btn btn-primary" style="width:auto;" onclick="createTask()">💾 สร้างงาน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ MODAL: User Profile ══════════════ -->
+    <div class="modal-overlay" id="modalUserProfile">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>👤 ข้อมูลผู้ใช้งาน</h3>
+                <button class="modal-close" onclick="closeModal('modalUserProfile')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ชื่อ</label>
+                        <input type="text" id="profFirstName">
+                    </div>
+                    <div class="form-group">
+                        <label>นามสกุล</label>
+                        <input type="text" id="profLastName">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>อีเมล</label>
+                    <input type="email" id="profEmail" disabled style="background:var(--surface3)">
+                </div>
+                <div class="form-group">
+                    <label>แผนก / ตำแหน่ง</label>
+                    <input type="text" id="profDepartment">
+                </div>
+                <div class="form-group">
+                    <label>เปลี่ยนรหัสผ่าน (ทิ้งว่างไว้ถ้าไม่ต้องการเปลี่ยน)</label>
+                    <input type="password" id="profPassword" placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)">
+                </div>
+                <div class="contact-section">
+                    <h4>📞 ช่องทางติดต่อ</h4>
+                    <div class="form-group">
+                        <label>เบอร์โทรศัพท์</label>
+                        <input type="tel" id="profPhone">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Line ID</label>
+                            <input type="text" id="profLineId">
+                        </div>
+                        <div class="form-group">
+                            <label>Teams / Slack</label>
+                            <input type="text" id="profChatApp">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ช่องทางติดต่อที่ต้องการ</label>
+                        <select id="profPrefContact">
+                            <option>อีเมล</option>
+                            <option>Line</option>
+                            <option>โทรศัพท์</option>
+                            <option>Teams</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalUserProfile')">ยกเลิก</button>
+                <button class="btn btn-primary" style="width:auto;" onclick="submitUserProfile()">💾
+                    บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"><span class="t-icon">✓</span> <span id="toastMsg"></span></div>
+
+    <script>
+        // ══════ DATA ══════
+        const colors = [
+            'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+            'linear-gradient(135deg,#10b981,#06b6d4)',
+            'linear-gradient(135deg,#f59e0b,#ef4444)',
+            'linear-gradient(135deg,#8b5cf6,#ec4899)',
+            'linear-gradient(135deg,#06b6d4,#3b82f6)',
+        ];
+
+        let tasks = [];
+        let latestUpdatesList = [];
+        let usersList = [];
+        let currentUser = null;
+
+        let currentTaskId = null;
+        let currentFilter = '';
+        let currentSearch = '';
+
+        // ══════ HELPERS ══════
+        function getLastUpdate(taskId) {
+            return latestUpdatesList.find(u => u.task_id === taskId) || null;
+        }
+        function statusBadge(s) {
+            const map = { todo: 'badge-todo', inprogress: 'badge-inprogress', review: 'badge-review', done: 'badge-done', overdue: 'badge-overdue' };
+            const label = { todo: 'To Do', inprogress: 'In Progress', review: 'Review', done: 'Done', overdue: 'Overdue' };
+            return `<span class="badge ${map[s] || 'badge-todo'}">${label[s] || s}</span>`;
+        }
+        function dueClass(d) {
+            const today = new Date(); const due = new Date(d);
+            const diff = (due - today) / (1000 * 60 * 60 * 24);
+            if (diff < 0) return 'due-overdue';
+            if (diff < 3) return 'due-soon';
+            return 'due-ok';
+        }
+        function avatarColor(name) {
+            if (!name) return colors[0];
+            let charSum = 0; for (let i = 0; i < name.length; i++) charSum += name.charCodeAt(i);
+            return colors[charSum % colors.length];
+        }
+        function initials(name) { return name ? name.substring(0, 2) : '??' }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // ══════ FETCH DATA ══════
+        async function loadData() {
+            try {
+                const [tasksRes, upRes, usersRes] = await Promise.all([
+                    fetch('/api/tasks'), fetch('/api/updates/latest'), fetch('/api/users')
+                ]);
+                if (tasksRes.ok) { const d = await tasksRes.json(); tasks = d.tasks || []; }
+                if (upRes.ok) { const d = await upRes.json(); latestUpdatesList = d.updates || []; }
+                if (usersRes.ok) { const d = await usersRes.json(); usersList = d.users || []; populateUserSelects(); renderUsersTable(); }
+                renderAll();
+            } catch (e) {
+                console.error('Data load error:', e);
+            }
+        }
+
+        function populateUserSelects() {
+            const sel = document.getElementById('newTaskAssign');
+            sel.innerHTML = '<option value="">(ไม่ระบุ)</option>';
+            usersList.forEach(u => {
+                sel.innerHTML += `<option value="${u.id}">${u.first_name} ${u.last_name}</option>`;
+            });
+        }
+
+        function renderUsersTable() {
+            const tbody = document.querySelector('#pageUsers tbody');
+            let html = '';
+            usersList.forEach(u => {
+                const fullName = `${u.first_name} ${u.last_name}`;
+                html += `<tr>
+      <td><div class="assignee"><div class="mini-avatar" style="background:${avatarColor(fullName)}">${initials(fullName)}</div> ${fullName}</div></td>
+      <td class="task-id">${u.email}</td>
+      <td>${u.department || '-'}</td>
+      <td>${u.preferred_contact === 'Line' ? '💬 ' + u.line_id : '📱 ' + u.phone}</td>
+      <td><span class="badge badge-done">${u.role}</span></td>
+    </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ══════ RENDER TABLE ══════
+        function renderTable(containerId, data, compact = false) {
+            const container = document.getElementById(containerId);
+            if (!data.length) {
+                container.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><p>ไม่มีรายการงาน</p></div>`;
+                return;
+            }
+            let html = `<table><thead><tr>
+    <th>รหัสงาน</th><th>ชื่องาน</th><th>มอบหมายให้</th>
+    <th>วันที่ Assign</th><th>Due Date</th><th>Status</th>
+    ${!compact ? '<th>Last Update Date</th><th>Last Update Detail</th>' : ''}
+    <th></th>
+  </tr></thead><tbody>`;
+            data.forEach(t => {
+                const lu = getLastUpdate(t.id);
+                const assignName = t.assignToName || 'ไม่ระบุ';
+                html += `<tr onclick="openTaskDetail('${t.id}')">
+      <td class="task-id">${t.id}</td>
+      <td><span class="task-name">${t.name}</span></td>
+      <td><div class="assignee">
+        <div class="mini-avatar" style="background:${avatarColor(assignName)}">${initials(assignName)}</div>
+        ${assignName}
+      </div></td>
+      <td class="due-date due-ok">${t.assign_date || '-'}</td>
+      <td class="due-date ${dueClass(t.due_date)}">${t.due_date || '-'}</td>
+      <td>${statusBadge(t.status)}</td>
+      ${!compact ? `
+        <td class="update-cell"><div class="update-date">${lu ? lu.update_date.split(' ')[0] : '-'}</div></td>
+        <td class="update-cell"><div class="update-detail">${lu ? lu.detail : '-'}</div></td>
+      ` : ''}
+      <td><button class="action-btn" onclick="event.stopPropagation();openTaskDetail('${t.id}')">ดูรายละเอียด</button></td>
+    </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function renderAll() {
+            let filtered = tasks;
+            if (currentFilter) filtered = filtered.filter(t => t.status === currentFilter);
+            if (currentSearch) filtered = filtered.filter(t =>
+                t.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                t.id.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                (t.assignToName || '').includes(currentSearch)
+            );
+
+            // Dashboard stats
+            document.querySelectorAll('.stat-value')[0].textContent = tasks.length;
+            document.querySelectorAll('.stat-value')[1].textContent = tasks.filter(t => t.status === 'inprogress').length;
+            document.querySelectorAll('.stat-value')[2].textContent = tasks.filter(t => t.status === 'done').length;
+            document.querySelectorAll('.stat-value')[3].textContent = tasks.filter(t => t.status === 'overdue').length;
+
+            renderTable('dashTaskTable', tasks.slice(0, 5), false);
+            renderTable('mainTaskTable', filtered, false);
+            if (currentUser) {
+                renderTable('myTaskTable', tasks.filter(t => parseInt(t.assign_to) === parseInt(currentUser.id)), false);
+            }
+            document.getElementById('pendingBadge').textContent = tasks.filter(t => t.status === 'inprogress' || t.status === 'todo').length;
+        }
+
+        function filterTasks(v) { currentFilter = v; renderAll(); }
+        function searchTasks(v) { currentSearch = v; renderAll(); }
+
+        // ══════ AUTH ══════
+        function switchTab(t) {
+            document.querySelectorAll('.auth-tab').forEach((el, i) => el.classList.toggle('active', i === (t === 'login' ? 0 : 1)));
+            document.getElementById('loginForm').style.display = t === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = t === 'register' ? 'block' : 'none';
+        }
+
+        function initSessionUser(user) {
+            currentUser = user;
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            const fname = user.first_name || user.firstName || 'User';
+            const lname = user.last_name || user.lastName || '';
+            document.querySelector('.user-name').textContent = fname + ' ' + lname;
+            document.querySelector('.user-avatar').textContent = initials(fname).toUpperCase();
+            document.querySelector('.user-role').textContent = user.department || user.role;
+            const menuUsers = document.getElementById('menuUsers');
+            if (menuUsers) menuUsers.style.display = (user.role === 'admin') ? 'flex' : 'none';
+            loadData();
+        }
+
+        async function doLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    initSessionUser(data.user);
+                    showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ!');
+                } else { alert(data.error); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function doRegister() {
+            const inputs = document.querySelectorAll('#registerForm input');
+            const selects = document.querySelectorAll('#registerForm select');
+            const payload = {
+                firstName: inputs[0].value,
+                lastName: inputs[1].value,
+                email: inputs[2].value,
+                department: inputs[3].value,
+                password: inputs[4].value,
+                // inputs[5] is confirm password
+                phone: inputs[6].value,
+                lineId: inputs[7].value,
+                chatApp: inputs[8].value,
+                preferredContact: selects[0].value
+            };
+            if (payload.password !== inputs[5].value) return alert('รหัสผ่านไม่ตรงกัน');
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+                    switchTab('login');
+                } else { alert(data.error); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function doLogout() {
+            await fetch('/api/logout', { method: 'POST' });
+            currentUser = null;
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('authScreen').style.display = 'flex';
+        }
+
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    initSessionUser(data.user);
+                }
+            } catch (e) {
+                // Wait at auth screen
+            }
+        }
+
+        // ══════ NAVIGATION ══════
+        function showPage(p) {
+            const map = { dashboard: 'pageDashboard', tasks: 'pageTasks', mytasks: 'pageMyTasks', users: 'pageUsers' };
+            const titles = { dashboard: 'ภาพรวมระบบ', tasks: 'รายการงานทั้งหมด', mytasks: 'งานของฉัน', users: 'จัดการผู้ใช้งาน' };
+            const subs = { dashboard: 'สรุปสถานะงานทั้งหมด', tasks: 'จัดการและติดตามงาน', mytasks: 'งานที่มอบหมายให้คุณ', users: 'รายชื่อสมาชิกในระบบ' };
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.getElementById(map[p]).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget && event.currentTarget.classList.add('active');
+            document.getElementById('pageTitle').textContent = titles[p];
+            document.getElementById('pageSubtitle').textContent = subs[p];
+        }
+
+        // ══════ MODAL ══════
+        async function openTaskDetail(taskId) {
+            currentTaskId = taskId;
+            const t = tasks.find(x => x.id === taskId);
+
+            // Fetch updates list
+            const res = await fetch(`/api/tasks/${taskId}/updates`);
+            const data = await res.json();
+            const taskUpdates = data.updates || [];
+            const lu = taskUpdates[0];
+
+            document.getElementById('detailTaskId').textContent = t.id;
+            document.getElementById('detailTaskName').textContent = t.name;
+            document.getElementById('detailStatus').innerHTML = statusBadge(t.status);
+
+            const assignName = t.assignToName || 'ไม่ระบุ';
+            document.getElementById('detailAssignTo').innerHTML = `<div class="assignee">
+    <div class="mini-avatar" style="background:${avatarColor(assignName)}">${initials(assignName)}</div>${assignName}</div>`;
+            document.getElementById('detailAssignDate').textContent = t.assign_date;
+            document.getElementById('detailDueDate').innerHTML = `<span class="${dueClass(t.due_date)}">${t.due_date}</span>`;
+            document.getElementById('detailLastUpdate').textContent = lu ? lu.update_date : 'ยังไม่มีการอัปเดต';
+
+            // update list
+            let ulHtml = '';
+            if (taskUpdates.length === 0) {
+                ulHtml = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">ยังไม่มีการอัปเดต</div>';
+            } else {
+                taskUpdates.forEach(u => {
+                    ulHtml += `<div class="update-item">
+        <div class="update-item-header">
+          <span>📅</span>
+          <span class="update-item-date">${u.update_date}</span>
+          <span class="update-item-by">${u.byName}</span>
+        </div>
+        <div class="update-item-detail">${u.detail}</div>
+        <div class="update-id">${u.id}</div>
+      </div>`;
+                });
+            }
+            document.getElementById('updateList').innerHTML = ulHtml;
+
+            // pre-fill date
+            const now = new Date();
+            // Adjust time offset for local display
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('newUpdateDate').value = now.toISOString().slice(0, 16);
+            document.getElementById('newUpdateDetail').value = '';
+            document.getElementById('newUpdateStatus').value = '';
+
+            document.getElementById('modalTaskDetail').classList.add('open');
+        }
+
+        function openCreateTask() {
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            const todayStr = today.toISOString().split('T')[0];
+            document.getElementById('newTaskAssignDate').value = todayStr;
+
+            const due = new Date(); due.setDate(due.getDate() + 7);
+            due.setMinutes(due.getMinutes() - due.getTimezoneOffset());
+            document.getElementById('newTaskDueDate').value = due.toISOString().split('T')[0];
+
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskDesc').value = '';
+            document.getElementById('modalCreateTask').classList.add('open');
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function openUserProfile() {
+            if (!currentUser) return;
+            document.getElementById('profFirstName').value = currentUser.first_name || currentUser.firstName || '';
+            document.getElementById('profLastName').value = currentUser.last_name || currentUser.lastName || '';
+            document.getElementById('profEmail').value = currentUser.email || '';
+            document.getElementById('profDepartment').value = currentUser.department || '';
+            document.getElementById('profPassword').value = '';
+            document.getElementById('profPhone').value = currentUser.phone || '';
+            document.getElementById('profLineId').value = currentUser.line_id || '';
+            document.getElementById('profChatApp').value = currentUser.chat_app || '';
+            document.getElementById('profPrefContact').value = currentUser.preferred_contact || 'อีเมล';
+            document.getElementById('modalUserProfile').classList.add('open');
+        }
+
+        async function submitUserProfile() {
+            const payload = {
+                firstName: document.getElementById('profFirstName').value,
+                lastName: document.getElementById('profLastName').value,
+                email: document.getElementById('profEmail').value,
+                department: document.getElementById('profDepartment').value,
+                password: document.getElementById('profPassword').value,
+                phone: document.getElementById('profPhone').value,
+                lineId: document.getElementById('profLineId').value,
+                chatApp: document.getElementById('profChatApp').value,
+                preferredContact: document.getElementById('profPrefContact').value
+            };
+            try {
+                const res = await fetch('/api/users/me', {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('✅ ' + data.message);
+                    closeModal('modalUserProfile');
+                    checkSession(); // refresh user data text in sidebar
+                } else {
+                    alert(data.error);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function submitUpdate() {
+            const detail = document.getElementById('newUpdateDetail').value.trim();
+            const rawDate = document.getElementById('newUpdateDate').value;
+            const newStatus = document.getElementById('newUpdateStatus').value;
+            if (!detail) { showToast('⚠️ กรุณากรอกรายละเอียด'); return; }
+
+            try {
+                const res = await fetch(`/api/tasks/${currentTaskId}/updates`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ detail, date: rawDate.replace('T', ' '), newStatus })
+                });
+                if (res.ok) {
+                    closeModal('modalTaskDetail');
+                    await loadData();
+                    showToast('✅ บันทึกการอัปเดตสำเร็จ');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function createTask() {
+            const name = document.getElementById('newTaskName').value.trim();
+            if (!name) { showToast('⚠️ กรุณากรอกชื่องาน'); return; }
+
+            const payload = {
+                name,
+                assignTo: document.getElementById('newTaskAssign').value,
+                assignDate: document.getElementById('newTaskAssignDate').value,
+                dueDate: document.getElementById('newTaskDueDate').value,
+                status: document.getElementById('newTaskStatus').value,
+                description: document.getElementById('newTaskDesc').value,
+            };
+
+            try {
+                const res = await fetch('/api/tasks', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeModal('modalCreateTask');
+                    await loadData();
+                    showToast('✅ สร้างงานใหม่สำเร็จ');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+        });
+
+        window.onload = () => {
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            const todayStr = today.toISOString().split('T')[0];
+            document.querySelectorAll('input[type=date]').forEach(el => { if (!el.value) el.value = todayStr; });
+
+            // Try to load session
+            checkSession();
+        };
+    </script>
+</body>
+
+</html>
