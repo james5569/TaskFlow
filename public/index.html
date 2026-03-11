@@ -1045,23 +1045,40 @@
         .page.active {
             display: block;
         }
+
         /* ══════════════ MOBILE RESPONSIVE ══════════════ */
-        /* Mobile bottom nav */
-        .mobile-bottom-nav {
-            display: none;
-        }
         .mobile-topbar-menu {
             display: none;
         }
 
+        /* Drawer overlay */
+        .drawer-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 300;
+            backdrop-filter: blur(2px);
+        }
+
+        .drawer-overlay.open {
+            display: block;
+        }
+
+        /* Mobile drawer sidebar */
+        .mobile-drawer {
+            display: none;
+        }
+
         @media (max-width: 768px) {
+
             /* Auth */
             .auth-card {
                 width: calc(100vw - 32px);
                 padding: 28px 20px;
             }
 
-            /* App layout - hide desktop sidebar */
+            /* Hide desktop sidebar */
             .sidebar {
                 display: none;
             }
@@ -1076,7 +1093,6 @@
                 overflow: hidden;
                 display: flex;
                 flex-direction: column;
-                padding-bottom: 64px; /* space for bottom nav */
             }
 
             .topbar {
@@ -1091,16 +1107,12 @@
                 display: none;
             }
 
-            .topbar-actions .btn span {
-                display: none; /* hide button text, keep icon */
-            }
-
             .content {
                 padding: 16px;
                 overflow-y: auto;
             }
 
-            /* Stats grid - 2 columns on mobile */
+            /* Stats grid 2 columns */
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
@@ -1110,7 +1122,7 @@
                 font-size: 22px;
             }
 
-            /* Tables - horizontal scroll */
+            /* Tables horizontal scroll */
             .table-card {
                 border-radius: 10px;
                 overflow-x: auto;
@@ -1138,7 +1150,7 @@
                 min-width: 600px;
             }
 
-            /* Modal - full width */
+            /* Modal full width bottom sheet */
             .modal {
                 max-width: 100%;
                 max-height: 95dvh;
@@ -1150,66 +1162,40 @@
                 align-items: flex-end;
             }
 
-            /* Form row on mobile = single column */
             .form-row {
                 grid-template-columns: 1fr;
             }
 
-            /* Toast at bottom center */
+            /* Toast */
             .toast {
-                bottom: 80px;
+                bottom: 24px;
                 right: 12px;
                 left: 12px;
                 text-align: center;
                 justify-content: center;
             }
 
-            /* Mobile bottom nav bar */
-            .mobile-bottom-nav {
-                display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 64px;
-                background: var(--surface);
-                border-top: 1px solid var(--border);
-                z-index: 100;
-                padding: 0 4px;
-                padding-bottom: env(safe-area-inset-bottom, 0);
-            }
-
-            .mobile-nav-item {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 3px;
-                cursor: pointer;
-                color: var(--text3);
-                font-size: 10px;
-                font-weight: 500;
-                transition: color .15s;
-                border-radius: 8px;
-                padding: 6px 0;
-            }
-
-            .mobile-nav-item.active, .mobile-nav-item:active {
-                color: var(--accent);
-            }
-
-            .mobile-nav-item .mn-icon {
-                font-size: 20px;
-                line-height: 1;
-            }
-
-            /* User profile is shown in topbar on mobile */
+            /* Mobile topbar control group (hamburger + avatar + logout) */
             .mobile-topbar-menu {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 margin-right: -4px;
+            }
+
+            .hamburger-btn {
+                cursor: pointer;
+                color: var(--text2);
+                font-size: 22px;
+                line-height: 1;
+                padding: 4px;
+                border-radius: 6px;
+                transition: background .15s;
+                user-select: none;
+            }
+
+            .hamburger-btn:active {
+                background: var(--surface2);
             }
 
             .mobile-avatar {
@@ -1224,12 +1210,128 @@
                 font-size: 12px;
                 cursor: pointer;
             }
+
+            /* Drawer sidebar */
+            .mobile-drawer {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 260px;
+                background: var(--surface);
+                border-right: 1px solid var(--border);
+                z-index: 400;
+                padding: 20px 0;
+                transform: translateX(-100%);
+                transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+            }
+
+            .mobile-drawer.open {
+                transform: translateX(0);
+                box-shadow: 4px 0 30px rgba(0, 0, 0, .4);
+            }
+
+            .drawer-logo {
+                padding: 0 20px 20px;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 16px;
+            }
+
+            .drawer-logo h2 {
+                font-size: 18px;
+                font-weight: 700;
+            }
+
+            .drawer-logo h2 span {
+                color: var(--accent);
+            }
+
+            .drawer-logo p {
+                font-size: 11px;
+                color: var(--text3);
+                font-family: var(--mono);
+            }
+
+            .drawer-nav {
+                padding: 0 12px;
+                margin-bottom: 8px;
+                flex: 1;
+            }
+
+            .drawer-label {
+                font-size: 10px;
+                color: var(--text3);
+                font-weight: 600;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                padding: 0 8px;
+                margin-bottom: 6px;
+            }
+
+            .drawer-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 11px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 15px;
+                color: var(--text2);
+                transition: all .15s;
+                margin-bottom: 2px;
+            }
+
+            .drawer-item:hover,
+            .drawer-item:active {
+                background: var(--surface2);
+                color: var(--text);
+            }
+
+            .drawer-item.active {
+                background: rgba(59, 130, 246, .15);
+                color: var(--accent);
+                font-weight: 600;
+            }
+
+            .drawer-item .di-icon {
+                font-size: 18px;
+            }
+
+            /* Drawer user info at bottom */
+            .drawer-user {
+                padding: 14px 20px;
+                border-top: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .drawer-user-info {
+                flex: 1;
+                overflow: hidden;
+            }
+
+            .drawer-user-name {
+                font-size: 13px;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .drawer-user-role {
+                font-size: 11px;
+                color: var(--text3);
+            }
         }
 
         @media (max-width: 400px) {
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
             }
+
             .stat-value {
                 font-size: 20px;
             }
@@ -1381,16 +1483,25 @@
             <!-- Main -->
             <main class="main">
                 <div class="topbar">
-                    <div>
-                        <h1 id="pageTitle">ภาพรวมระบบ</h1>
-                        <div class="page-sub" id="pageSubtitle">สรุปสถานะงานทั้งหมด</div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <!-- hamburger only visible on mobile via CSS -->
+                        <div class="mobile-topbar-menu">
+                            <span class="hamburger-btn" onclick="openDrawer()" title="เมนู">☰</span>
+                        </div>
+                        <div>
+                            <h1 id="pageTitle">ภาพรวมระบบ</h1>
+                            <div class="page-sub" id="pageSubtitle">สรุปสถานะงานทั้งหมด</div>
+                        </div>
                     </div>
                     <div class="topbar-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openCreateTask()">+ <span>สร้างงานใหม่</span></button>
-                        <!-- Mobile avatar -->
+                        <button class="btn btn-primary btn-sm" onclick="openCreateTask()">+
+                            <span>สร้างงานใหม่</span></button>
+                        <!-- Mobile avatar and logout (right side) -->
                         <div class="mobile-topbar-menu">
-                            <div class="mobile-avatar" id="mobileAvatar" onclick="openUserProfile()" title="โปรไฟล์">?</div>
-                            <div style="cursor:pointer;color:var(--text3);font-size:20px;" onclick="doLogout()" title="ออกจากระบบ">⏻</div>
+                            <div class="mobile-avatar" id="mobileAvatar" onclick="openUserProfile()" title="โปรไฟล์">?
+                            </div>
+                            <div style="cursor:pointer;color:var(--text3);font-size:20px;" onclick="doLogout()"
+                                title="ออกจากระบบ">⏻</div>
                         </div>
                     </div>
                 </div>
@@ -1525,27 +1636,44 @@
                 </div>
             </main>
         </div>
-        <!-- Mobile Bottom Navigation -->
-        <nav class="mobile-bottom-nav" id="mobileBottomNav">
-            <div class="mobile-nav-item active" id="mnDashboard" onclick="showPage('dashboard')">
-                <span class="mn-icon">📊</span>
-                <span>ภาพรวม</span>
+
+        <!-- Mobile Drawer Overlay -->
+        <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+        <!-- Mobile Sidebar Drawer -->
+        <nav class="mobile-drawer" id="mobileDrawer">
+            <div class="drawer-logo">
+                <h2>Task<span>Flow</span></h2>
+                <p>v1.0.0 • 2025</p>
             </div>
-            <div class="mobile-nav-item" id="mnTasks" onclick="showPage('tasks')">
-                <span class="mn-icon">📋</span>
-                <span>งาน</span>
+            <div class="drawer-nav">
+                <div class="drawer-label">เมนูหลัก</div>
+                <div class="drawer-item active" id="dnDashboard" onclick="showPage('dashboard');closeDrawer()">
+                    <span class="di-icon">📊</span> ภาพรวม
+                </div>
+                <div class="drawer-item" id="dnTasks" onclick="showPage('tasks');closeDrawer()">
+                    <span class="di-icon">📋</span> รายการงาน
+                </div>
+                <div class="drawer-item" id="dnMytasks" onclick="showPage('mytasks');closeDrawer()">
+                    <span class="di-icon">👤</span> งานของฉัน
+                </div>
             </div>
-            <div class="mobile-nav-item" id="mnCreate" onclick="openCreateTask()">
-                <span class="mn-icon">➕</span>
-                <span>สร้าง</span>
+            <div class="drawer-nav" style="margin-top:0;">
+                <div class="drawer-label">จัดการ</div>
+                <div class="drawer-item" id="dnUsers" onclick="showPage('users');closeDrawer()" style="display:none">
+                    <span class="di-icon">👥</span> ผู้ใช้งาน
+                </div>
+                <div class="drawer-item" onclick="openCreateTask();closeDrawer()">
+                    <span class="di-icon">➕</span> สร้างงานใหม่
+                </div>
             </div>
-            <div class="mobile-nav-item" id="mnMytasks" onclick="showPage('mytasks')">
-                <span class="mn-icon">👤</span>
-                <span>ของฉัน</span>
-            </div>
-            <div class="mobile-nav-item" id="mnUsers" onclick="showPage('users')" style="display:none">
-                <span class="mn-icon">👥</span>
-                <span>ผู้ใช้</span>
+            <div class="drawer-user">
+                <div class="user-avatar" id="drawerAvatar">?</div>
+                <div class="drawer-user-info" onclick="openUserProfile();closeDrawer()" style="cursor:pointer;">
+                    <div class="drawer-user-name" id="drawerUserName">ผู้ใช้งาน</div>
+                    <div class="drawer-user-role" id="drawerUserRole"></div>
+                </div>
+                <div class="user-logout" onclick="doLogout()" title="ออกจากระบบ">⏻</div>
             </div>
         </nav>
     </div>
@@ -1893,19 +2021,37 @@
             document.getElementById('appScreen').style.display = 'block';
             const fname = user.first_name || user.firstName || 'User';
             const lname = user.last_name || user.lastName || '';
-            document.querySelector('.user-name').textContent = fname + ' ' + lname;
+            const fullName = fname + ' ' + lname;
+            document.querySelector('.user-name').textContent = fullName;
             document.querySelector('.user-avatar').textContent = initials(fname).toUpperCase();
             document.querySelector('.user-role').textContent = user.department || user.role;
-            // Sync mobile avatar initials
+            // Sync mobile topbar avatar
             const mobileAvatar = document.getElementById('mobileAvatar');
             if (mobileAvatar) mobileAvatar.textContent = initials(fname).toUpperCase();
+            // Sync drawer user info
+            const drawerAvatar = document.getElementById('drawerAvatar');
+            const drawerUserName = document.getElementById('drawerUserName');
+            const drawerUserRole = document.getElementById('drawerUserRole');
+            if (drawerAvatar) drawerAvatar.textContent = initials(fname).toUpperCase();
+            if (drawerUserName) drawerUserName.textContent = fullName;
+            if (drawerUserRole) drawerUserRole.textContent = user.department || user.role;
             // Admin-only menus
-            const menuUsers = document.getElementById('menuUsers');
-            const mnUsers = document.getElementById('mnUsers');
             const isAdmin = user.role === 'admin';
+            const menuUsers = document.getElementById('menuUsers');
+            const dnUsers = document.getElementById('dnUsers');
             if (menuUsers) menuUsers.style.display = isAdmin ? 'flex' : 'none';
-            if (mnUsers) mnUsers.style.display = isAdmin ? 'flex' : 'none';
+            if (dnUsers) dnUsers.style.display = isAdmin ? 'flex' : 'none';
             loadData();
+        }
+
+        function openDrawer() {
+            document.getElementById('mobileDrawer').classList.add('open');
+            document.getElementById('drawerOverlay').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('mobileDrawer').classList.remove('open');
+            document.getElementById('drawerOverlay').classList.remove('open');
         }
 
         async function doLogin() {
@@ -1984,11 +2130,11 @@
             event.currentTarget && event.currentTarget.classList.add('active');
             document.getElementById('pageTitle').textContent = titles[p];
             document.getElementById('pageSubtitle').textContent = subs[p];
-            // Sync mobile bottom nav
-            const mobileMap = { dashboard: 'mnDashboard', tasks: 'mnTasks', mytasks: 'mnMytasks', users: 'mnUsers' };
-            document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
-            const mnEl = document.getElementById(mobileMap[p]);
-            if (mnEl) mnEl.classList.add('active');
+            // Sync drawer active state
+            const drawerMap = { dashboard: 'dnDashboard', tasks: 'dnTasks', mytasks: 'dnMytasks', users: 'dnUsers' };
+            document.querySelectorAll('.drawer-item').forEach(el => el.classList.remove('active'));
+            const dnEl = document.getElementById(drawerMap[p]);
+            if (dnEl) dnEl.classList.add('active');
         }
 
         // ══════ MODAL ══════
