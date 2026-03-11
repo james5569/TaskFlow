@@ -1045,6 +1045,195 @@
         .page.active {
             display: block;
         }
+        /* ══════════════ MOBILE RESPONSIVE ══════════════ */
+        /* Mobile bottom nav */
+        .mobile-bottom-nav {
+            display: none;
+        }
+        .mobile-topbar-menu {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            /* Auth */
+            .auth-card {
+                width: calc(100vw - 32px);
+                padding: 28px 20px;
+            }
+
+            /* App layout - hide desktop sidebar */
+            .sidebar {
+                display: none;
+            }
+
+            .app-layout {
+                flex-direction: column;
+                height: 100dvh;
+            }
+
+            .main {
+                flex: 1;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                padding-bottom: 64px; /* space for bottom nav */
+            }
+
+            .topbar {
+                padding: 12px 16px;
+            }
+
+            .topbar h1 {
+                font-size: 16px;
+            }
+
+            .topbar .page-sub {
+                display: none;
+            }
+
+            .topbar-actions .btn span {
+                display: none; /* hide button text, keep icon */
+            }
+
+            .content {
+                padding: 16px;
+                overflow-y: auto;
+            }
+
+            /* Stats grid - 2 columns on mobile */
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-value {
+                font-size: 22px;
+            }
+
+            /* Tables - horizontal scroll */
+            .table-card {
+                border-radius: 10px;
+                overflow-x: auto;
+            }
+
+            .table-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .table-header h3 {
+                width: 100%;
+            }
+
+            .search-box {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            /* Modal - full width */
+            .modal {
+                max-width: 100%;
+                max-height: 95dvh;
+                border-radius: 16px 16px 0 0;
+            }
+
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            /* Form row on mobile = single column */
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            /* Toast at bottom center */
+            .toast {
+                bottom: 80px;
+                right: 12px;
+                left: 12px;
+                text-align: center;
+                justify-content: center;
+            }
+
+            /* Mobile bottom nav bar */
+            .mobile-bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 64px;
+                background: var(--surface);
+                border-top: 1px solid var(--border);
+                z-index: 100;
+                padding: 0 4px;
+                padding-bottom: env(safe-area-inset-bottom, 0);
+            }
+
+            .mobile-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                cursor: pointer;
+                color: var(--text3);
+                font-size: 10px;
+                font-weight: 500;
+                transition: color .15s;
+                border-radius: 8px;
+                padding: 6px 0;
+            }
+
+            .mobile-nav-item.active, .mobile-nav-item:active {
+                color: var(--accent);
+            }
+
+            .mobile-nav-item .mn-icon {
+                font-size: 20px;
+                line-height: 1;
+            }
+
+            /* User profile is shown in topbar on mobile */
+            .mobile-topbar-menu {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-right: -4px;
+            }
+
+            .mobile-avatar {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                background: linear-gradient(135deg, var(--accent), var(--accent3));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 12px;
+                cursor: pointer;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-value {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 
@@ -1067,11 +1256,11 @@
             <div id="loginForm">
                 <div class="form-group">
                     <label>อีเมล</label>
-                    <input type="email" id="loginEmail" placeholder="example@company.com" value="admin@taskflow.com">
+                    <input type="email" id="loginEmail" placeholder="example@company.com">
                 </div>
                 <div class="form-group">
                     <label>รหัสผ่าน</label>
-                    <input type="password" id="loginPass" placeholder="••••••••" value="password">
+                    <input type="password" id="loginPass" placeholder="••••••••">
                 </div>
                 <button class="btn btn-primary" onclick="doLogin()">🔐 เข้าสู่ระบบ</button>
                 <div class="contact-info" style="margin-top:16px;">
@@ -1197,7 +1386,12 @@
                         <div class="page-sub" id="pageSubtitle">สรุปสถานะงานทั้งหมด</div>
                     </div>
                     <div class="topbar-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openCreateTask()">+ สร้างงานใหม่</button>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateTask()">+ <span>สร้างงานใหม่</span></button>
+                        <!-- Mobile avatar -->
+                        <div class="mobile-topbar-menu">
+                            <div class="mobile-avatar" id="mobileAvatar" onclick="openUserProfile()" title="โปรไฟล์">?</div>
+                            <div style="cursor:pointer;color:var(--text3);font-size:20px;" onclick="doLogout()" title="ออกจากระบบ">⏻</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1331,6 +1525,29 @@
                 </div>
             </main>
         </div>
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav" id="mobileBottomNav">
+            <div class="mobile-nav-item active" id="mnDashboard" onclick="showPage('dashboard')">
+                <span class="mn-icon">📊</span>
+                <span>ภาพรวม</span>
+            </div>
+            <div class="mobile-nav-item" id="mnTasks" onclick="showPage('tasks')">
+                <span class="mn-icon">📋</span>
+                <span>งาน</span>
+            </div>
+            <div class="mobile-nav-item" id="mnCreate" onclick="openCreateTask()">
+                <span class="mn-icon">➕</span>
+                <span>สร้าง</span>
+            </div>
+            <div class="mobile-nav-item" id="mnMytasks" onclick="showPage('mytasks')">
+                <span class="mn-icon">👤</span>
+                <span>ของฉัน</span>
+            </div>
+            <div class="mobile-nav-item" id="mnUsers" onclick="showPage('users')" style="display:none">
+                <span class="mn-icon">👥</span>
+                <span>ผู้ใช้</span>
+            </div>
+        </nav>
     </div>
 
     <!-- ══════════════ MODAL: Task Detail ══════════════ -->
@@ -1679,8 +1896,15 @@
             document.querySelector('.user-name').textContent = fname + ' ' + lname;
             document.querySelector('.user-avatar').textContent = initials(fname).toUpperCase();
             document.querySelector('.user-role').textContent = user.department || user.role;
+            // Sync mobile avatar initials
+            const mobileAvatar = document.getElementById('mobileAvatar');
+            if (mobileAvatar) mobileAvatar.textContent = initials(fname).toUpperCase();
+            // Admin-only menus
             const menuUsers = document.getElementById('menuUsers');
-            if (menuUsers) menuUsers.style.display = (user.role === 'admin') ? 'flex' : 'none';
+            const mnUsers = document.getElementById('mnUsers');
+            const isAdmin = user.role === 'admin';
+            if (menuUsers) menuUsers.style.display = isAdmin ? 'flex' : 'none';
+            if (mnUsers) mnUsers.style.display = isAdmin ? 'flex' : 'none';
             loadData();
         }
 
@@ -1752,14 +1976,19 @@
         // ══════ NAVIGATION ══════
         function showPage(p) {
             const map = { dashboard: 'pageDashboard', tasks: 'pageTasks', mytasks: 'pageMyTasks', users: 'pageUsers' };
-            const titles = { dashboard: 'ภาพรวมระบบ', tasks: 'รายการงานทั้งหมด', mytasks: 'งานของฉัน', users: 'จัดการผู้ใช้งาน' };
-            const subs = { dashboard: 'สรุปสถานะงานทั้งหมด', tasks: 'จัดการและติดตามงาน', mytasks: 'งานที่มอบหมายให้คุณ', users: 'รายชื่อสมาชิกในระบบ' };
+            const titles = { dashboard: '\u0e20\u0e32\u0e1e\u0e23\u0e27\u0e21\u0e23\u0e30\u0e1a\u0e1a', tasks: '\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e07\u0e32\u0e19\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14', mytasks: '\u0e07\u0e32\u0e19\u0e02\u0e2d\u0e07\u0e09\u0e31\u0e19', users: '\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19' };
+            const subs = { dashboard: '\u0e2a\u0e23\u0e38\u0e1b\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e07\u0e32\u0e19\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14', tasks: '\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e41\u0e25\u0e30\u0e15\u0e34\u0e14\u0e15\u0e32\u0e21\u0e07\u0e32\u0e19', mytasks: '\u0e07\u0e32\u0e19\u0e17\u0e35\u0e48\u0e21\u0e2d\u0e1a\u0e2b\u0e21\u0e32\u0e22\u0e43\u0e2b\u0e49\u0e04\u0e38\u0e13', users: '\u0e23\u0e32\u0e22\u0e0a\u0e37\u0e48\u0e2d\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01\u0e43\u0e19\u0e23\u0e30\u0e1a\u0e1a' };
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.getElementById(map[p]).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             event.currentTarget && event.currentTarget.classList.add('active');
             document.getElementById('pageTitle').textContent = titles[p];
             document.getElementById('pageSubtitle').textContent = subs[p];
+            // Sync mobile bottom nav
+            const mobileMap = { dashboard: 'mnDashboard', tasks: 'mnTasks', mytasks: 'mnMytasks', users: 'mnUsers' };
+            document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.remove('active'));
+            const mnEl = document.getElementById(mobileMap[p]);
+            if (mnEl) mnEl.classList.add('active');
         }
 
         // ══════ MODAL ══════
